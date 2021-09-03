@@ -1,5 +1,7 @@
 # https://github.com/wangyoucao577/go-release-action
 
+name: Publish Release
+
 on: 
   release:
     types: [created]
