@@ -1,5 +1,4 @@
 # post-handler
-[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fbluestoneag%2Fpost-handler%2Fbadge%3Fref%3Dmain&style=flat)](https://actions-badge.atrox.dev/bluestoneag/post-handler/goto?ref=main)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Report Card](https://goreportcard.com/badge/github.com/bluestoneag/post-handler)](https://goreportcard.com/report/github.com/bluestoneag/post-handler)
 
