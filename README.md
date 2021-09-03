@@ -12,6 +12,16 @@ export AUTH_PASSWORD=<your password>
 export SERVER_PORT=<your port>
 ```
 
+**optional** you can set some SMB users to push the files directly on a SMB Share
+```bash
+export SMB_ENABLED=true
+export SMB_SERVER=<IP or DNS> # 192.168.1.10
+export SMB_SHARENAME=<sharename> # The name of the Windows Share (not \\192.168.1.10\share, only share)
+export SMB_USERNAME=<smb username> # without domain
+export SMB_PASSWORD=<smb password>
+export SMB_DOMAIN=<windows domain> # e.g. domain.local
+```
+
 ## Volumes
 The program creates a folder called **"./data"** in the executing path and stores every file which its getting in this directory.
 
@@ -33,6 +43,12 @@ services:
     environment:
       - AUTH_USERNAME=username
       - AUTH_PASSWORD=password
+      - SMB_ENABLED=true
+      - SMB_SERVER=192.168.1.10
+      - SMB_SHARENAME=share
+      - SMB_USERNAME=username
+      - SMB_PASSWORD=password
+      - SMB_DOMAIN=domain.local
     networks: 
       - post-handler
 
@@ -40,3 +56,4 @@ networks:
   post-handler:
     driver: bridge
 ```
+

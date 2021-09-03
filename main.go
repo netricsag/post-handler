@@ -7,9 +7,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
+
+	"github.com/hirochachacha/go-smb2"
 )
 
 type application struct {
@@ -21,6 +25,14 @@ type application struct {
 		port       string
 		datafolder string
 	}
+	smb struct {
+		enabled    string
+		servername string
+		sharename  string
+		username   string
+		password   string
+		domain     string
+	}
 }
 
 func main() {
@@ -29,6 +41,12 @@ func main() {
 	app.auth.username = os.Getenv("AUTH_USERNAME")
 	app.auth.password = os.Getenv("AUTH_PASSWORD")
 	app.server.port = os.Getenv("SERVER_PORT")
+	app.smb.enabled = os.Getenv("SMB_ENABLED")
+	app.smb.servername = os.Getenv("SMB_SERVERNAME")
+	app.smb.sharename = os.Getenv("SMB_SHARENAME")
+	app.smb.username = os.Getenv("SMB_USERNAME")
+	app.smb.password = os.Getenv("SMB_PASSWORD")
+	app.smb.domain = os.Getenv("SMB_DOMAIN")
 
 	if app.auth.username == "" {
 		log.Fatal("basic auth username must be provided")
@@ -41,6 +59,24 @@ func main() {
 	if app.server.port == "" {
 		// Setting default Port
 		app.server.port = "80"
+	}
+
+	if app.smb.enabled == "true" {
+		if app.smb.servername == "" {
+			log.Fatal("smb servername must be provided")
+		}
+		if app.smb.sharename == "" {
+			log.Fatal("smb sharename must be provided")
+		}
+		if app.smb.username == "" {
+			log.Fatal("smb username must be provided")
+		}
+		if app.smb.password == "" {
+			log.Fatal("smb password must be provided")
+		}
+		if app.smb.domain == "" {
+			log.Fatal("smb domain must be provided")
+		}
 	}
 
 	if _, err := os.Stat("./data"); errors.Is(err, os.ErrNotExist) {
@@ -96,22 +132,30 @@ func (app *application) getDataStream(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	err = writeToFile(bodyBytes)
+	nameOfFile, err := writeToFile(bodyBytes)
 	if err != nil {
 		log.Println(err)
+	}
+
+	if app.smb.enabled == "true" {
+		err := pushOnSMB(nameOfFile, bodyBytes, app.smb.servername, app.smb.sharename, app.smb.username, app.smb.password, app.smb.domain)
+		if err != nil {
+			log.Println("SMB Upload failed!")
+		}
+		log.Printf("SMB: Successfully uploaded to \\\\%s\\%s\\%s", app.smb.servername, app.smb.sharename, nameOfFile)
 	}
 
 	fmt.Fprintf(w, "Successfully Uploaded File\n")
 }
 
-func writeToFile(b []byte) error {
+func writeToFile(b []byte) (string, error) {
 
 	content := []byte(b)
-
-	tempFile, err := ioutil.TempFile("data", getFilenameDate())
+	fileName := getFilenameDate()
+	tempFile, err := ioutil.TempFile("data", fileName)
 	if err != nil {
 		log.Println(err)
-		return err
+		return "", err
 	}
 
 	if _, err = tempFile.Write(content); err != nil {
@@ -120,13 +164,49 @@ func writeToFile(b []byte) error {
 	if err := tempFile.Close(); err != nil {
 		log.Println(err)
 	}
-	fmt.Printf("File written: %+v\n", tempFile.Name())
+	log.Printf("Local Storage: File written -> %+v\n", tempFile.Name())
 
-	return nil
+	return fileName, nil
 }
 
 func getFilenameDate() string {
 	const layout = "02-01-2006"
 	t := time.Now()
-	return t.Format(layout) + "_*.cxml"
+	unix_timestamp := strconv.FormatInt(time.Now().UTC().Unix(), 10)
+	return t.Format(layout) + "_" + unix_timestamp + ".cxml"
+}
+
+func pushOnSMB(filename string, fileContent []byte, servername string, sharename string, username string, password string, domain string) error {
+	conn, err := net.Dial("tcp", servername+":445")
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+
+	d := &smb2.Dialer{
+		Initiator: &smb2.NTLMInitiator{
+			User:     username,
+			Password: password,
+			Domain:   domain,
+		},
+	}
+
+	s, err := d.Dial(conn)
+	if err != nil {
+		panic(err)
+	}
+	defer s.Logoff()
+
+	fs, err := s.Mount("\\\\" + servername + "\\" + sharename)
+	if err != nil {
+		panic(err)
+	}
+	defer fs.Umount()
+
+	err = fs.WriteFile(filename, fileContent, 0444)
+	if err != nil {
+		log.Println("Couldn't write file to smb share", err)
+	}
+
+	return nil
 }
