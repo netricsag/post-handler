@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/sha256"
 	"crypto/subtle"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -16,6 +17,10 @@ type application struct {
 		username string
 		password string
 	}
+	server struct {
+		port       string
+		datafolder string
+	}
 }
 
 func main() {
@@ -23,6 +28,7 @@ func main() {
 	app := new(application)
 	app.auth.username = os.Getenv("AUTH_USERNAME")
 	app.auth.password = os.Getenv("AUTH_PASSWORD")
+	app.server.port = os.Getenv("SERVER_PORT")
 
 	if app.auth.username == "" {
 		log.Fatal("basic auth username must be provided")
@@ -32,12 +38,23 @@ func main() {
 		log.Fatal("basic auth password must be provided")
 	}
 
+	if app.server.port == "" {
+		// Setting default Port
+		app.server.port = "80"
+	}
+
+	if _, err := os.Stat("./data"); errors.Is(err, os.ErrNotExist) {
+		err := os.Mkdir("./data", os.ModePerm)
+		if err != nil {
+			log.Fatal("Can't create data folder: ", err)
+		}
+	}
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/upload", app.basicAuth(app.getDataStream))
-	// mux.HandleFunc("/upload", app.uploadFile)
 
 	srv := &http.Server{
-		Addr:         ":80",
+		Addr:         ":" + app.server.port,
 		Handler:      mux,
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
@@ -83,8 +100,7 @@ func (app *application) getDataStream(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-	// Debugging Print Function
-	// fmt.Printf("%s", bodyBytes)
+
 	fmt.Fprintf(w, "Successfully Uploaded File\n")
 }
 
