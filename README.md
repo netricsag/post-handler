@@ -17,5 +17,26 @@ The program creates a folder called **"./data"** in the executing path and store
 
 ## Docker
 ```bash
-docker run -e AUTH_USERNAME=<your username> -e AUTH_PASSWORD=<your password> -v /data:/app/data -p 80:80
+docker run -d -e AUTH_USERNAME=<your username> -e AUTH_PASSWORD=<your password> -v /data/post-handler:/root/data -p 80:80 dockerbluestone/post-handler:latest
+```
+
+### Docker-Compose
+```yaml
+version: "3.9"  # optional since v1.27.0
+services:
+  post-handler:
+    image: dockerbluestone/post-handler:latest
+    ports:
+      - "80:80"
+    volumes:
+      - /data/post-handler:/root/data
+    environment:
+      - AUTH_USERNAME=username
+      - AUTH_PASSWORD=password
+    networks: 
+      - post-handler
+
+networks:
+  post-handler:
+    driver: bridge
 ```
