@@ -126,7 +126,7 @@ func writeToFile(b []byte) error {
 }
 
 func getFilenameDate() string {
-	const layout = "29-12-1999"
+	const layout = "02-01-2006"
 	t := time.Now()
 	return t.Format(layout) + "_*.cxml"
 }
