@@ -2,7 +2,7 @@
 FROM golang:1.16
 WORKDIR /go/src/github.com/bluestoneag/post-handler/
 RUN go get -d -v golang.org/x/net/html  
-COPY main.go ./
+COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .
 
 FROM alpine:latest  
