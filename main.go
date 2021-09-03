@@ -108,7 +108,7 @@ func writeToFile(b []byte) error {
 
 	content := []byte(b)
 
-	tempFile, err := ioutil.TempFile("data", "data-*.cxml")
+	tempFile, err := ioutil.TempFile("data", getFilenameDate())
 	if err != nil {
 		log.Println(err)
 		return err
@@ -123,4 +123,10 @@ func writeToFile(b []byte) error {
 	fmt.Printf("File written: %+v\n", tempFile.Name())
 
 	return nil
+}
+
+func getFilenameDate() string {
+	const layout = "29-12-1999"
+	t := time.Now()
+	return t.Format(layout) + "_*.cxml"
 }
