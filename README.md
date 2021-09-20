@@ -15,6 +15,11 @@ export AUTH_PASSWORD=<your password>
 export SERVER_PORT=<your port>
 ```
 
+**optional** you can set another receivment path with the following Env Variable (default is "prod")
+```bash
+export SERVER_STAGE=test # path will be rednered inside https://api.test.ch/<stage>-upload
+```
+
 **optional** you can set some SMB users to push the files directly on a SMB Share
 ```bash
 export SMB_ENABLED=true
@@ -48,6 +53,7 @@ services:
     environment:
       - AUTH_USERNAME=username
       - AUTH_PASSWORD=password
+      - SERVER_STAGE=test # path will be rednered inside https://api.test.ch/<stage>-upload
       - SMB_ENABLED=true
       - SMB_SERVERNAME=192.168.1.10
       - SMB_SHARENAME=share
