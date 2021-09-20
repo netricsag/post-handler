@@ -24,7 +24,6 @@ type application struct {
 	server struct {
 		port       string
 		datafolder string
-		stage      string
 	}
 	smb struct {
 		enabled    string
@@ -42,7 +41,6 @@ func main() {
 	app.auth.username = os.Getenv("AUTH_USERNAME")
 	app.auth.password = os.Getenv("AUTH_PASSWORD")
 	app.server.port = os.Getenv("SERVER_PORT")
-	app.server.stage = os.Getenv("SERVER_STAGE")
 	app.smb.enabled = os.Getenv("SMB_ENABLED")
 	app.smb.servername = os.Getenv("SMB_SERVERNAME")
 	app.smb.sharename = os.Getenv("SMB_SHARENAME")
@@ -61,12 +59,6 @@ func main() {
 	if app.server.port == "" {
 		// Setting default Port
 		app.server.port = "80"
-	}
-
-	if app.server.stage == "" {
-		// Setting default Port
-		app.server.stage = "prod"
-
 	}
 
 	if app.smb.enabled == "true" {
@@ -95,7 +87,7 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/"+app.server.stage+"-upload", app.basicAuth(app.getDataStream))
+	mux.HandleFunc("/upload", app.basicAuth(app.getDataStream))
 
 	srv := &http.Server{
 		Addr:         ":" + app.server.port,
