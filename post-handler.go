@@ -115,13 +115,23 @@ func pushOnSMB(filename string, fileContent []byte) error {
 	if err != nil {
 		return err
 	}
-	defer sambaClient.Logoff()
+	defer func() {
+		err := sambaClient.Logoff()
+		if err != nil {
+			util.ErrorLogger.Println(err)
+		}
+	}()
 
 	fs, err := sambaClient.Mount("\\\\" + util.App.SMB.Servername + "\\" + util.App.SMB.Sharename)
 	if err != nil {
 		return err
 	}
-	defer fs.Umount()
+	defer func() {
+		err := fs.Umount()
+		if err != nil {
+			util.ErrorLogger.Println(err)
+		}
+	}()
 
 	if err = fs.WriteFile(filename, fileContent, 0444); err != nil {
 		return err
