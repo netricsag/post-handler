@@ -1,0 +1,22 @@
+version: "3.9"  # optional since v1.27.0
+services:
+
+  # PRODUCTION
+
+  prod-post-handler:
+    restart: unless-stopped
+    image: post-handler:local
+    ports:
+      - "8080:80"
+    environment:
+      - AUTH_USERNAME=P004013
+      - AUTH_PASSWORD=Sommer2000%
+      - SMB_ENABLED=false
+    networks:
+      - post-handler
+
+networks:
+  post-handler:
+    driver: bridge
+  post-requester:
+    driver: bridge
