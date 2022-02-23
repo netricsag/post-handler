@@ -10,10 +10,6 @@ Set the following required Env Variables to start the HTTP Post Handler
 export AUTH_USERNAME=<your username>
 export AUTH_PASSWORD=<your password>
 ```
-**optional** you can set another server port with the following Env Variable (default is Port 80)
-```bash
-export SERVER_PORT=<your port>
-```
 
 **optional** you can set some SMB users to push the files directly on a SMB Share
 ```bash
@@ -43,9 +39,9 @@ docker run -d -e AUTH_USERNAME=<your username> -e AUTH_PASSWORD=<your password> 
 version: "3.9"  # optional since v1.27.0
 services:
   post-handler:
-    image: dockerbluestone/post-handler:latest
+    image: ghcr.io/natron-io/post-handler:latest
     ports:
-      - "80:80"
+      - "8080:8080"
     volumes:
       - /data/post-handler:/root/data
     environment:
