@@ -14,7 +14,7 @@ import (
 	"github.com/natron-io/post-handler/util"
 )
 
-func Init() {
+func init() {
 	util.InitLoggers()
 
 	if err := util.LoadEnv(); err != nil {
@@ -25,7 +25,6 @@ func Init() {
 }
 
 func main() {
-
 	srv := fiber.New()
 
 	srv.Use(basicauth.New(basicauth.Config{
